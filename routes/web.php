@@ -54,6 +54,7 @@ Route::middleware(['auth', 'role:arrendador'])->group(function () {
 
 Route::middleware(['auth', 'role:arrendatario'])->group(function () {
     Route::get('/arrendatario', [RentalConfirmationController::class, 'index'])->name('rentals.create');
+    Route::get('/arrendatario/terminos-y-condiciones', [RentalConfirmationController::class, 'terms'])->name('rentals.terms');
     Route::post('/arrendatario/confirmar', [RentalConfirmationController::class, 'store'])->name('rentals.store');
 });
 

@@ -11,6 +11,16 @@
                 </div>
             @endif
 
+            @if ($statusNotification && $latestTransaction)
+                <div class="rounded-2xl border px-5 py-4 text-sm {{ $statusNotification['classes'] }}">
+                    <p class="font-semibold">{{ $statusNotification['title'] }}</p>
+                    <p class="mt-1">{{ $statusNotification['message'] }}</p>
+                    <p class="mt-2 text-xs font-medium opacity-80">
+                        Actualizado el {{ $latestTransaction->updated_at->format('d/m/Y H:i') }}.
+                    </p>
+                </div>
+            @endif
+
             <section class="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
                 <article class="overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
                     <div class="bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.35),_transparent_40%),linear-gradient(135deg,#0f172a,#1e293b_55%,#334155)] px-6 py-8 sm:px-8">
@@ -67,14 +77,12 @@
                             <p class="mt-1">
                                 Consulta la version {{ $termsVersion }} antes de confirmar el alquiler.
                             </p>
-                            <button
-                                type="button"
-                                x-data
-                                x-on:click.prevent="$dispatch('open-modal', 'rental-terms-modal')"
+                            <a
+                                href="{{ route('rentals.terms') }}"
                                 class="mt-3 inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
                             >
                                 Ver terminos y condiciones
-                            </button>
+                            </a>
                         </div>
 
                         <label class="flex gap-3 rounded-2xl border border-slate-200 p-4 text-sm text-slate-700">
@@ -124,34 +132,15 @@
                             Ultima aceptacion registrada el
                             <strong>{{ $latestTransaction->accepted_terms_at->format('d/m/Y H:i') }}</strong>.
                         </div>
+
+                        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                            Estado actual de tu solicitud:
+                            <strong class="text-slate-900">{{ ucfirst($latestTransaction->status) }}</strong>.
+                        </div>
                     @endif
                 </aside>
             </section>
         </div>
     </div>
 
-    <x-modal name="rental-terms-modal" maxWidth="2xl" focusable>
-        <div class="p-6 sm:p-8">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Version {{ $termsVersion }}</p>
-                    <h3 class="mt-2 text-2xl font-semibold text-slate-900">Terminos y condiciones</h3>
-                </div>
-                <button
-                    type="button"
-                    x-data
-                    x-on:click.prevent="$dispatch('close-modal', 'rental-terms-modal')"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-                >
-                    Cerrar
-                </button>
-            </div>
-
-            <div class="mt-6 space-y-3 text-sm leading-7 text-slate-600">
-                @foreach (explode("\n", $termsContent) as $term)
-                    <p>{{ $term }}</p>
-                @endforeach
-            </div>
-        </div>
-    </x-modal>
 </x-app-layout>

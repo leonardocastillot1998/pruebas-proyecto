@@ -14,11 +14,26 @@ class RentalConfirmationController extends Controller
 
     public function index(): View
     {
+        $latestTransaction = auth()->user()
+            ->transactions()
+            ->latest()
+            ->first();
+
         return view('arrendatario', [
             'rental' => $this->rentalSummary(),
-            'termsVersion' => self::TERMS_VERSION,
+            'termsVersion' => $this->termsVersion(),
             'termsContent' => $this->termsContent(),
-            'latestTransaction' => auth()->user()->transactions()->latest()->first(),
+            'latestTransaction' => $latestTransaction,
+            'statusNotification' => $this->statusNotification($latestTransaction),
+        ]);
+    }
+
+    public function terms(): View
+    {
+        return view('rentals.terms', [
+            'rental' => $this->rentalSummary(),
+            'termsVersion' => $this->termsVersion(),
+            'termsContent' => $this->termsContent(),
         ]);
     }
 
@@ -41,7 +56,7 @@ class RentalConfirmationController extends Controller
             'rental_days' => $rental['rental_days'],
             'total_amount' => $rental['total_amount'],
             'status' => 'pendiente',
-            'terms_version' => self::TERMS_VERSION,
+            'terms_version' => $this->termsVersion(),
             'terms_snapshot' => $this->termsContent(),
             'accepted_terms_at' => now(),
         ]);
@@ -73,6 +88,32 @@ class RentalConfirmationController extends Controller
             '4. El arrendatario debe reportar incidentes o fallas relevantes a la plataforma de manera inmediata.',
             '5. La confirmacion del alquiler deja constancia de que el arrendatario conoce sus responsabilidades.',
         ]);
+    }
+
+    private function termsVersion(): string
+    {
+        return self::TERMS_VERSION;
+    }
+
+    private function statusNotification(?Transaction $transaction): ?array
+    {
+        if (! $transaction || ! in_array($transaction->status, ['aprobada', 'rechazada'], true)) {
+            return null;
+        }
+
+        if ($transaction->status === 'aprobada') {
+            return [
+                'title' => 'Tu solicitud fue aprobada',
+                'message' => 'El arrendador aprobo la renta de ' . $transaction->item_name . '. Ya puedes continuar con la coordinacion de la entrega.',
+                'classes' => 'border-emerald-200 bg-emerald-50 text-emerald-800',
+            ];
+        }
+
+        return [
+            'title' => 'Tu solicitud fue rechazada',
+            'message' => 'El arrendador rechazo la renta de ' . $transaction->item_name . '. Puedes revisar otras opciones y realizar una nueva solicitud.',
+            'classes' => 'border-rose-200 bg-rose-50 text-rose-800',
+        ];
     }
 
     private function resolveLandlordId(): ?int
